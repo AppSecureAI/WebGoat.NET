@@ -16,6 +16,13 @@
   var reEscape = new RegExp('(\\' + ['/', '.', '*', '+', '?', '|', '(', ')', '[', ']', '{', '}', '\\'].join('|\\') + ')', 'g');
 
   function fnFormatResult(value, data, currentValue) {
+    // Limit input length to prevent ReDoS attacks
+    if (!currentValue || currentValue.length === 0) {
+      return value;
+    }
+    if (currentValue.length > 100) {
+      currentValue = currentValue.substring(0, 100);
+    }
     var pattern = '(' + currentValue.replace(reEscape, '\\$1') + ')';
     return value.replace(new RegExp(pattern, 'gi'), '<strong>$1<\/strong>');
   }
