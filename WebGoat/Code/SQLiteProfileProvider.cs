@@ -378,12 +378,18 @@ namespace TechInfoSystems.Data.SQLite
 			SqliteConnection cn = GetDbConnectionForProfile ();
 			try {
 				using (SqliteCommand cmd = cn.CreateCommand()) {
+					string authClause;
+					SqliteParameter authParam;
+					GetClauseForAuthenticationOptions (authenticationOption, out authClause, out authParam);
+
 					cmd.CommandText = "DELETE FROM " + PROFILE_TB_NAME + " WHERE UserId IN (SELECT UserId FROM " + USER_TB_NAME
 														+ " WHERE ApplicationId = $ApplicationId AND LastActivityDate <= $LastActivityDate"
-														+ GetClauseForAuthenticationOptions (authenticationOption) + ")";
+														+ authClause + ")";
 
 					cmd.Parameters.AddWithValue ("$ApplicationId", _membershipApplicationId);
 					cmd.Parameters.AddWithValue ("$LastActivityDate", userInactiveSinceDate);
+					if (authParam != null)
+						cmd.Parameters.Add (authParam);
 
 					if (cn.State == ConnectionState.Closed)
 						cn.Open ();
@@ -409,14 +415,20 @@ namespace TechInfoSystems.Data.SQLite
 			SqliteConnection cn = GetDbConnectionForProfile ();
 			try {
 				using (SqliteCommand cmd = cn.CreateCommand()) {
+					string authClause;
+					SqliteParameter authParam;
+					GetClauseForAuthenticationOptions (authenticationOption, out authClause, out authParam);
+
 					cmd.CommandText = "SELECT COUNT(*) FROM " + USER_TB_NAME + " u, " + PROFILE_TB_NAME + " p " +
-														"WHERE u.ApplicationId = $ApplicationId AND u.LastActivityDate <= $LastActivityDate AND u.UserId = p.UserId" + GetClauseForAuthenticationOptions (authenticationOption);
+														"WHERE u.ApplicationId = $ApplicationId AND u.LastActivityDate <= $LastActivityDate AND u.UserId = p.UserId" + authClause;
 
 					if (cn.State == ConnectionState.Closed)
 						cn.Open ();
 
 					cmd.Parameters.AddWithValue ("$ApplicationId", _membershipApplicationId);
 					cmd.Parameters.AddWithValue ("$LastActivityDate", userInactiveSinceDate);
+					if (authParam != null)
+						cmd.Parameters.Add (authParam);
 
 					return cmd.ExecuteNonQuery ();
 				}
@@ -438,15 +450,26 @@ namespace TechInfoSystems.Data.SQLite
 		/// </returns>
 		public override ProfileInfoCollection GetAllProfiles (ProfileAuthenticationOption authenticationOption, int pageIndex, int pageSize, out int totalRecords)
 		{
+			string authClause;
+			SqliteParameter authParam;
+			GetClauseForAuthenticationOptions (authenticationOption, out authClause, out authParam);
+
 			string sqlQuery = "SELECT u.UserName, u.IsAnonymous, u.LastActivityDate, p.LastUpdatedDate, length(p.PropertyNames) + length(p.PropertyValuesString) FROM "
 												+ USER_TB_NAME + " u, " + PROFILE_TB_NAME + " p WHERE u.ApplicationId = $ApplicationId AND u.UserId = p.UserId "
-												+ GetClauseForAuthenticationOptions (authenticationOption);
+												+ authClause;
 
 			SqliteParameter prm = new SqliteParameter ("$ApplicationId", DbType.String, 36);
 			prm.Value = _membershipApplicationId;
 
-			SqliteParameter[] args = new SqliteParameter[1];
-			args [0] = prm;
+			SqliteParameter[] args;
+			if (authParam != null) {
+				args = new SqliteParameter[2];
+				args [0] = prm;
+				args [1] = authParam;
+			} else {
+				args = new SqliteParameter[1];
+				args [0] = prm;
+			}
 			return GetProfilesForQuery (sqlQuery, args, pageIndex, pageSize, out totalRecords);
 		}
 
@@ -463,18 +486,30 @@ namespace TechInfoSystems.Data.SQLite
 		/// </returns>
 		public override ProfileInfoCollection GetAllInactiveProfiles (ProfileAuthenticationOption authenticationOption, DateTime userInactiveSinceDate, int pageIndex, int pageSize, out int totalRecords)
 		{
+			string authClause;
+			SqliteParameter authParam;
+			GetClauseForAuthenticationOptions (authenticationOption, out authClause, out authParam);
+
 			string sqlQuery = "SELECT u.UserName, u.IsAnonymous, u.LastActivityDate, p.LastUpdatedDate, length(p.PropertyNames) + length(p.PropertyValuesString) FROM "
 												+ USER_TB_NAME + " u, " + PROFILE_TB_NAME + " p WHERE u.ApplicationId = $ApplicationId AND u.UserId = p.UserId AND u.LastActivityDate <= $LastActivityDate"
-												+ GetClauseForAuthenticationOptions (authenticationOption);
+												+ authClause;
 
 			SqliteParameter prm1 = new SqliteParameter ("$ApplicationId", DbType.String, 256);
 			prm1.Value = _membershipApplicationId;
 			SqliteParameter prm2 = new SqliteParameter ("$LastActivityDate", DbType.DateTime);
 			prm2.Value = userInactiveSinceDate;
 
-			SqliteParameter[] args = new SqliteParameter[2];
-			args [0] = prm1;
-			args [1] = prm2;
+			SqliteParameter[] args;
+			if (authParam != null) {
+				args = new SqliteParameter[3];
+				args [0] = prm1;
+				args [1] = prm2;
+				args [2] = authParam;
+			} else {
+				args = new SqliteParameter[2];
+				args [0] = prm1;
+				args [1] = prm2;
+			}
 
 			return GetProfilesForQuery (sqlQuery, args, pageIndex, pageSize, out totalRecords);
 		}
@@ -492,18 +527,30 @@ namespace TechInfoSystems.Data.SQLite
 		/// </returns>
 		public override ProfileInfoCollection FindProfilesByUserName (ProfileAuthenticationOption authenticationOption, string usernameToMatch, int pageIndex, int pageSize, out int totalRecords)
 		{
+			string authClause;
+			SqliteParameter authParam;
+			GetClauseForAuthenticationOptions (authenticationOption, out authClause, out authParam);
+
 			string sqlQuery = "SELECT u.UserName, u.IsAnonymous, u.LastActivityDate, p.LastUpdatedDate, length(p.PropertyNames) + length(p.PropertyValuesString) FROM "
 												+ USER_TB_NAME + " u, " + PROFILE_TB_NAME + " p WHERE u.ApplicationId = $ApplicationId AND u.UserId = p.UserId AND u.LoweredUserName LIKE $UserName"
-												+ GetClauseForAuthenticationOptions (authenticationOption);
+												+ authClause;
 
 			SqliteParameter prm1 = new SqliteParameter ("$ApplicationId", DbType.String, 256);
 			prm1.Value = _membershipApplicationId;
 			SqliteParameter prm2 = new SqliteParameter ("$UserName", DbType.String, 256);
 			prm2.Value = usernameToMatch.ToLowerInvariant ();
 
-			SqliteParameter[] args = new SqliteParameter[2];
-			args [0] = prm1;
-			args [1] = prm2;
+			SqliteParameter[] args;
+			if (authParam != null) {
+				args = new SqliteParameter[3];
+				args [0] = prm1;
+				args [1] = prm2;
+				args [2] = authParam;
+			} else {
+				args = new SqliteParameter[2];
+				args [0] = prm1;
+				args [1] = prm2;
+			}
 
 			return GetProfilesForQuery (sqlQuery, args, pageIndex, pageSize, out totalRecords);
 		}
@@ -522,9 +569,13 @@ namespace TechInfoSystems.Data.SQLite
 		/// </returns>
 		public override ProfileInfoCollection FindInactiveProfilesByUserName (ProfileAuthenticationOption authenticationOption, string usernameToMatch, DateTime userInactiveSinceDate, int pageIndex, int pageSize, out int totalRecords)
 		{
+			string authClause;
+			SqliteParameter authParam;
+			GetClauseForAuthenticationOptions (authenticationOption, out authClause, out authParam);
+
 			string sqlQuery = "SELECT u.UserName, u.IsAnonymous, u.LastActivityDate, p.LastUpdatedDate, length(p.PropertyNames) + length(p.PropertyValuesString) FROM "
 												+ USER_TB_NAME + " u, " + PROFILE_TB_NAME + " p WHERE u.ApplicationId = $ApplicationId AND u.UserId = p.UserId AND u.UserName LIKE $UserName AND u.LastActivityDate <= $LastActivityDate"
-												+ GetClauseForAuthenticationOptions (authenticationOption);
+												+ authClause;
 
 			SqliteParameter prm1 = new SqliteParameter ("$ApplicationId", DbType.String, 256);
 			prm1.Value = _membershipApplicationId;
@@ -533,10 +584,19 @@ namespace TechInfoSystems.Data.SQLite
 			SqliteParameter prm3 = new SqliteParameter ("$LastActivityDate", DbType.DateTime);
 			prm3.Value = userInactiveSinceDate;
 
-			SqliteParameter[] args = new SqliteParameter[3];
-			args [0] = prm1;
-			args [1] = prm2;
-			args [2] = prm3;
+			SqliteParameter[] args;
+			if (authParam != null) {
+				args = new SqliteParameter[4];
+				args [0] = prm1;
+				args [1] = prm2;
+				args [2] = prm3;
+				args [3] = authParam;
+			} else {
+				args = new SqliteParameter[3];
+				args [0] = prm1;
+				args [1] = prm2;
+				args [2] = prm3;
+			}
 
 			return GetProfilesForQuery (sqlQuery, args, pageIndex, pageSize, out totalRecords);
 		}
@@ -1069,17 +1129,25 @@ namespace TechInfoSystems.Data.SQLite
 			}
 		}
 
-		private static string GetClauseForAuthenticationOptions (ProfileAuthenticationOption authenticationOption)
+		private static void GetClauseForAuthenticationOptions (ProfileAuthenticationOption authenticationOption, out string clause, out SqliteParameter parameter)
 		{
 			switch (authenticationOption) {
 			case ProfileAuthenticationOption.Anonymous:
-				return " AND IsAnonymous='1' ";
+				clause = " AND IsAnonymous = $IsAnonymous ";
+				parameter = new SqliteParameter ("$IsAnonymous", DbType.Boolean);
+				parameter.Value = true;
+				break;
 
 			case ProfileAuthenticationOption.Authenticated:
-				return " AND IsAnonymous='0' ";
+				clause = " AND IsAnonymous = $IsAnonymous ";
+				parameter = new SqliteParameter ("$IsAnonymous", DbType.Boolean);
+				parameter.Value = false;
+				break;
 
 			case ProfileAuthenticationOption.All:
-				return " ";
+				clause = " ";
+				parameter = null;
+				break;
 
 			default:
 				throw new InvalidEnumArgumentException (String.Format ("Unknown ProfileAuthenticationOption value: {0}.", authenticationOption.ToString ()));
