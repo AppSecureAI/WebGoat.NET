@@ -20,8 +20,8 @@ jobs:
         run: |
           pip install semgrep
           semgrep --config=auto --json --output semgrep_results.json --error || true
-      
+
       - name: AppSecAI Analysis
-        uses: AppSecureAI/automation-action@v1
+        uses: AppSecureAI/submit-run-action@main
         with:
           file: semgrep_results.json
