@@ -204,8 +204,8 @@ namespace TechInfoSystems.Data.SQLite
 				using (SqliteCommand cmd = cn.CreateCommand()) {
 					cmd.CommandText = "SELECT UserId FROM " + USER_TB_NAME + " WHERE LoweredUsername = $Username AND ApplicationId = $ApplicationId;";
 
-					cmd.Parameters.AddWithValue ("$Username", username.ToLowerInvariant ());
-					cmd.Parameters.AddWithValue ("$ApplicationId", _membershipApplicationId);
+					cmd.Parameters.Add (new SqliteParameter ("$Username", DbType.String, 256) { Value = username.ToLowerInvariant () });
+					cmd.Parameters.Add (new SqliteParameter ("$ApplicationId", DbType.String, 256) { Value = _membershipApplicationId });
 
 					string userId = cmd.ExecuteScalar () as string;
 
@@ -221,7 +221,7 @@ namespace TechInfoSystems.Data.SQLite
 
 					cmd.CommandText = "SELECT COUNT(*) FROM " + PROFILE_TB_NAME + " WHERE UserId = $UserId";
 					cmd.Parameters.Clear ();
-					cmd.Parameters.AddWithValue ("$UserId", userId);
+					cmd.Parameters.Add (new SqliteParameter ("$UserId", DbType.String) { Value = userId });
 
 					if (Convert.ToInt64 (cmd.ExecuteScalar ()) > 0) {
 						cmd.CommandText = "UPDATE " + PROFILE_TB_NAME + " SET PropertyNames = $PropertyNames, PropertyValuesString = $PropertyValuesString, PropertyValuesBinary = $PropertyValuesBinary, LastUpdatedDate = $LastUpdatedDate WHERE UserId = $UserId";
@@ -229,19 +229,19 @@ namespace TechInfoSystems.Data.SQLite
 						cmd.CommandText = "INSERT INTO " + PROFILE_TB_NAME + " (UserId, PropertyNames, PropertyValuesString, PropertyValuesBinary, LastUpdatedDate) VALUES ($UserId, $PropertyNames, $PropertyValuesString, $PropertyValuesBinary, $LastUpdatedDate)";
 					}
 					cmd.Parameters.Clear ();
-					cmd.Parameters.AddWithValue ("$UserId", userId);
-					cmd.Parameters.AddWithValue ("$PropertyNames", names);
-					cmd.Parameters.AddWithValue ("$PropertyValuesString", values);
-					cmd.Parameters.AddWithValue ("$PropertyValuesBinary", buf);
-					cmd.Parameters.AddWithValue ("$LastUpdatedDate", DateTime.UtcNow);
+					cmd.Parameters.Add (new SqliteParameter ("$UserId", DbType.String) { Value = userId });
+					cmd.Parameters.Add (new SqliteParameter ("$PropertyNames", DbType.String) { Value = names });
+					cmd.Parameters.Add (new SqliteParameter ("$PropertyValuesString", DbType.String) { Value = values });
+					cmd.Parameters.Add (new SqliteParameter ("$PropertyValuesBinary", DbType.Binary) { Value = buf });
+					cmd.Parameters.Add (new SqliteParameter ("$LastUpdatedDate", DbType.DateTime) { Value = DateTime.UtcNow });
 
 					cmd.ExecuteNonQuery ();
 
 					// Update activity field
 					cmd.CommandText = "UPDATE " + USER_TB_NAME + " SET LastActivityDate = $LastActivityDate WHERE UserId = $UserId";
 					cmd.Parameters.Clear ();
-					cmd.Parameters.AddWithValue ("$LastActivityDate", DateTime.UtcNow);
-					cmd.Parameters.AddWithValue ("$UserId", userId);
+					cmd.Parameters.Add (new SqliteParameter ("$LastActivityDate", DbType.DateTime) { Value = DateTime.UtcNow });
+					cmd.Parameters.Add (new SqliteParameter ("$UserId", DbType.String) { Value = userId });
 					cmd.ExecuteNonQuery ();
 
 					if (tran != null)
