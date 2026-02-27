@@ -20,6 +20,6 @@
           run: semgrep --config=auto --json > semgrep_results.json
         
         - name: AppSecAI Analysis
-          uses: AppSecureAI/submit-run-action@master
+          uses: AppSecureAI/submit-run-action@main
           with:
             file: semgrep_results.json
