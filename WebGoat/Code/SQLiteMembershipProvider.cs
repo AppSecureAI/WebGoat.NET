@@ -1535,8 +1535,14 @@ namespace TechInfoSystems.Data.SQLite
 					DateTime windowEnd = windowStart.AddMinutes (PasswordAttemptWindow);
 
 					if (failureCount == 0 || DateTime.UtcNow > windowEnd) {
-						// First password failure or outside of PasswordAttemptWindow. 
+						// First password failure or outside of PasswordAttemptWindow.
 						// Start a new password failure count from 1 and a new window starting now.
+
+						cmd.Parameters.Clear ();
+						cmd.Parameters.AddWithValue ("$Count", 1);
+						cmd.Parameters.AddWithValue ("$WindowStart", DateTime.UtcNow);
+						cmd.Parameters.AddWithValue ("$Username", username.ToLowerInvariant ());
+						cmd.Parameters.AddWithValue ("$ApplicationId", _applicationId);
 
 						if (failureType == "password")
 							cmd.CommandText = "UPDATE " + USER_TB_NAME
@@ -1550,32 +1556,31 @@ namespace TechInfoSystems.Data.SQLite
 								+ "      FailedPasswordAnswerAttemptWindowStart = $WindowStart "
 								+ "  WHERE LoweredUsername = $Username AND ApplicationId = $ApplicationId";
 
-						cmd.Parameters.Clear ();
-						cmd.Parameters.AddWithValue ("$Count", 1);
-						cmd.Parameters.AddWithValue ("$WindowStart", DateTime.UtcNow);
-						cmd.Parameters.AddWithValue ("$Username", username.ToLowerInvariant ());
-						cmd.Parameters.AddWithValue ("$ApplicationId", _applicationId);
-
 						if (cmd.ExecuteNonQuery () < 0)
 							throw new ProviderException ("Unable to update failure count and window start.");
 					} else {
 						if (failureCount++ >= MaxInvalidPasswordAttempts) {
 							// Password attempts have exceeded the failure threshold. Lock out the user.
-							cmd.CommandText = "UPDATE " + USER_TB_NAME
-								+ "  SET IsLockedOut = '1', LastLockoutDate = $LastLockoutDate, FailedPasswordAttemptCount = $Count "
-								+ "  WHERE LoweredUsername = $Username AND ApplicationId = $ApplicationId";
-
 							cmd.Parameters.Clear ();
 							cmd.Parameters.AddWithValue ("$LastLockoutDate", DateTime.UtcNow);
 							cmd.Parameters.AddWithValue ("$Count", failureCount);
 							cmd.Parameters.AddWithValue ("$Username", username.ToLowerInvariant ());
 							cmd.Parameters.AddWithValue ("$ApplicationId", _applicationId);
 
+							cmd.CommandText = "UPDATE " + USER_TB_NAME
+								+ "  SET IsLockedOut = '1', LastLockoutDate = $LastLockoutDate, FailedPasswordAttemptCount = $Count "
+								+ "  WHERE LoweredUsername = $Username AND ApplicationId = $ApplicationId";
+
 							if (cmd.ExecuteNonQuery () < 0)
 								throw new ProviderException ("Unable to lock out user.");
 						} else {
 							// Password attempts have not exceeded the failure threshold. Update
 							// the failure counts. Leave the window the same.
+
+							cmd.Parameters.Clear ();
+							cmd.Parameters.AddWithValue ("$Count", failureCount);
+							cmd.Parameters.AddWithValue ("$Username", username.ToLowerInvariant ());
+							cmd.Parameters.AddWithValue ("$ApplicationId", _applicationId);
 
 							if (failureType == "password")
 								cmd.CommandText = "UPDATE " + USER_TB_NAME
@@ -1586,11 +1591,6 @@ namespace TechInfoSystems.Data.SQLite
 								cmd.CommandText = "UPDATE " + USER_TB_NAME
 									+ "  SET FailedPasswordAnswerAttemptCount = $Count"
 									+ "  WHERE LoweredUsername = $Username AND ApplicationId = $ApplicationId";
-
-							cmd.Parameters.Clear ();
-							cmd.Parameters.AddWithValue ("$Count", failureCount);
-							cmd.Parameters.AddWithValue ("$Username", username.ToLowerInvariant ());
-							cmd.Parameters.AddWithValue ("$ApplicationId", _applicationId);
 
 							if (cmd.ExecuteNonQuery () < 0)
 								throw new ProviderException ("Unable to update failure count.");
