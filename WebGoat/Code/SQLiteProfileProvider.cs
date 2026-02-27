@@ -548,19 +548,19 @@ namespace TechInfoSystems.Data.SQLite
 		private static void CreateAnonymousUser (string username, SqliteConnection cn, SqliteTransaction tran, string userId)
 		{
 			using (SqliteCommand cmd = cn.CreateCommand()) {
-				cmd.CommandText = "INSERT INTO " + USER_TB_NAME
-													+ " (UserId, Username, LoweredUsername, ApplicationId, Email, LoweredEmail, Comment, Password,"
-													+ " PasswordFormat, PasswordSalt, PasswordQuestion,"
-													+ " PasswordAnswer, IsApproved, IsAnonymous,"
-													+ " CreateDate, LastPasswordChangedDate, LastActivityDate,"
-													+ " LastLoginDate, IsLockedOut, LastLockoutDate,"
-													+ " FailedPasswordAttemptCount, FailedPasswordAttemptWindowStart,"
-													+ " FailedPasswordAnswerAttemptCount, FailedPasswordAnswerAttemptWindowStart)"
-													+ " Values($UserId, $Username, $LoweredUsername, $ApplicationId, $Email, $LoweredEmail, $Comment, $Password,"
-													+ " $PasswordFormat, $PasswordSalt, $PasswordQuestion, $PasswordAnswer, $IsApproved, $IsAnonymous, $CreateDate, $LastPasswordChangedDate,"
-													+ " $LastActivityDate, $LastLoginDate, $IsLockedOut, $LastLockoutDate,"
-													+ " $FailedPasswordAttemptCount, $FailedPasswordAttemptWindowStart,"
-													+ " $FailedPasswordAnswerAttemptCount, $FailedPasswordAnswerAttemptWindowStart)";
+				cmd.CommandText = string.Format(
+					"INSERT INTO {0} " +
+					"(UserId, Username, LoweredUsername, ApplicationId, Email, LoweredEmail, Comment, Password, " +
+					"PasswordFormat, PasswordSalt, PasswordQuestion, PasswordAnswer, IsApproved, IsAnonymous, " +
+					"CreateDate, LastPasswordChangedDate, LastActivityDate, LastLoginDate, IsLockedOut, LastLockoutDate, " +
+					"FailedPasswordAttemptCount, FailedPasswordAttemptWindowStart, " +
+					"FailedPasswordAnswerAttemptCount, FailedPasswordAnswerAttemptWindowStart) " +
+					"VALUES ($UserId, $Username, $LoweredUsername, $ApplicationId, $Email, $LoweredEmail, $Comment, $Password, " +
+					"$PasswordFormat, $PasswordSalt, $PasswordQuestion, $PasswordAnswer, $IsApproved, $IsAnonymous, $CreateDate, $LastPasswordChangedDate, " +
+					"$LastActivityDate, $LastLoginDate, $IsLockedOut, $LastLockoutDate, " +
+					"$FailedPasswordAttemptCount, $FailedPasswordAttemptWindowStart, " +
+					"$FailedPasswordAnswerAttemptCount, $FailedPasswordAnswerAttemptWindowStart)",
+					USER_TB_NAME);
 
 				cmd.Transaction = tran;
 
