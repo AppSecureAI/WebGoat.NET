@@ -570,8 +570,7 @@ namespace TechInfoSystems.Data.SQLite
 			SqliteConnection cn = GetDbConnectionForRole ();
 			try {
 				using (SqliteCommand cmd = cn.CreateCommand()) {
-					cmd.CommandText = "SELECT COUNT(*) FROM " + ROLE_TB_NAME +
-								" WHERE LoweredRoleName = $RoleName AND ApplicationId = $ApplicationId";
+					cmd.CommandText = String.Format("SELECT COUNT(*) FROM {0} WHERE LoweredRoleName = $RoleName AND ApplicationId = $ApplicationId", ROLE_TB_NAME);
 
 					cmd.Parameters.AddWithValue ("$RoleName", roleName.ToLowerInvariant ());
 					cmd.Parameters.AddWithValue ("$ApplicationId", _applicationId);
