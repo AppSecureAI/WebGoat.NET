@@ -409,8 +409,23 @@ namespace TechInfoSystems.Data.SQLite
 			SqliteConnection cn = GetDbConnectionForProfile ();
 			try {
 				using (SqliteCommand cmd = cn.CreateCommand()) {
+					string authClause;
+					switch (authenticationOption) {
+					case ProfileAuthenticationOption.Anonymous:
+						authClause = " AND IsAnonymous='1' ";
+						break;
+					case ProfileAuthenticationOption.Authenticated:
+						authClause = " AND IsAnonymous='0' ";
+						break;
+					case ProfileAuthenticationOption.All:
+						authClause = " ";
+						break;
+					default:
+						throw new InvalidEnumArgumentException (String.Format ("Unknown ProfileAuthenticationOption value: {0}.", authenticationOption.ToString ()));
+					}
+
 					cmd.CommandText = "SELECT COUNT(*) FROM " + USER_TB_NAME + " u, " + PROFILE_TB_NAME + " p " +
-														"WHERE u.ApplicationId = $ApplicationId AND u.LastActivityDate <= $LastActivityDate AND u.UserId = p.UserId" + GetClauseForAuthenticationOptions (authenticationOption);
+														"WHERE u.ApplicationId = $ApplicationId AND u.LastActivityDate <= $LastActivityDate AND u.UserId = p.UserId" + authClause;
 
 					if (cn.State == ConnectionState.Closed)
 						cn.Open ();
