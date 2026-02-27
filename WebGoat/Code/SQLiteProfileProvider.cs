@@ -690,7 +690,7 @@ namespace TechInfoSystems.Data.SQLite
 			SqliteConnection cn = GetDbConnectionForProfile ();
 			try {
 				using (SqliteCommand cmd = cn.CreateCommand()) {
-					cmd.CommandText = "SELECT ApplicationId FROM aspnet_Applications WHERE ApplicationName = $AppName";
+					cmd.CommandText = "SELECT ApplicationId FROM " + APP_TB_NAME + " WHERE ApplicationName = $AppName";
 					cmd.Parameters.AddWithValue ("$AppName", appName);
 
 					if (cn.State == ConnectionState.Closed)
