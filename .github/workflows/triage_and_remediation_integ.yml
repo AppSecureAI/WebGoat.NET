@@ -1,25 +1,27 @@
-  name: Triage and Remediation Integ
+name: Triage and Remediation Integ
 
-  permissions:
-    contents: read
-    id-token: write
+permissions:
+  contents: read
+  id-token: write
 
-  on:
-    workflow_dispatch: 
+on:
+  workflow_dispatch: 
 
-  jobs:
-    triageAndRemediation:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
-          with:
-            fetch-depth: 0
+jobs:
+  triageAndRemediation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-        - name: Run Semgrep
-          run: semgrep --config=auto --json > semgrep_results.json
-        
-        - name: AppSecAI Analysis
-          uses: AppSecureAI/submit-run-action@main
-          with:
-            file: semgrep_results.json
+      - name: Run Semgrep
+        run: |
+          pip install semgrep
+          semgrep --config=auto --json --output semgrep_results.json --error || true
+      
+      - name: AppSecAI Analysis
+        uses: AppSecureAI/automation-action@v1
+        with:
+          file: semgrep_results.json
