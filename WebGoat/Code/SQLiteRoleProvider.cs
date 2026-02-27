@@ -472,10 +472,10 @@ namespace TechInfoSystems.Data.SQLite
 						+ " WHERE u.LoweredUsername = $Username AND u.ApplicationId = $MembershipApplicationId"
 						+ " AND r.LoweredRoleName = $RoleName AND r.ApplicationId = $ApplicationId";
 
-					cmd.Parameters.AddWithValue ("$Username", username.ToLowerInvariant ());
-					cmd.Parameters.AddWithValue ("$RoleName", roleName.ToLowerInvariant ());
-					cmd.Parameters.AddWithValue ("$MembershipApplicationId", _membershipApplicationId);
-					cmd.Parameters.AddWithValue ("$ApplicationId", _applicationId);
+					cmd.Parameters.Add ("$Username", DbType.String, MAX_USERNAME_LENGTH).Value = username.ToLowerInvariant ();
+					cmd.Parameters.Add ("$RoleName", DbType.String, MAX_ROLENAME_LENGTH).Value = roleName.ToLowerInvariant ();
+					cmd.Parameters.Add ("$MembershipApplicationId", DbType.String).Value = _membershipApplicationId;
+					cmd.Parameters.Add ("$ApplicationId", DbType.String).Value = _applicationId;
 
 					if (cn.State == ConnectionState.Closed)
 						cn.Open ();
