@@ -285,7 +285,7 @@
     processResponse: function(text) {
       var response;
       try {
-        response = eval('(' + text + ')');
+        response = JSON.parse(text);
       } catch (err) { return; }
       if (!$.isArray(response.data)) { response.data = []; }
       if(!this.options.noCache){
