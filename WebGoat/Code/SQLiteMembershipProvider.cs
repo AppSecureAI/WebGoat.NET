@@ -548,17 +548,19 @@ namespace TechInfoSystems.Data.SQLite
 				SqliteConnection cn = GetDBConnectionForMembership ();
 				try {
 					using (SqliteCommand cmd = cn.CreateCommand()) {
-						cmd.CommandText = "INSERT INTO " + USER_TB_NAME +
+						cmd.CommandText = string.Format(
+									"INSERT INTO {0} " +
 									" (UserId, Username, LoweredUsername, ApplicationId, Email, LoweredEmail, Comment, Password, " +
 									" PasswordFormat, PasswordSalt, PasswordQuestion, PasswordAnswer, IsApproved, IsAnonymous, " +
 									" LastActivityDate, LastLoginDate, LastPasswordChangedDate, CreateDate, " +
 									" IsLockedOut, LastLockoutDate, FailedPasswordAttemptCount, FailedPasswordAttemptWindowStart, " +
 									" FailedPasswordAnswerAttemptCount, FailedPasswordAnswerAttemptWindowStart) " +
-									" Values ($UserId, $Username, $LoweredUsername, $ApplicationId, $Email, $LoweredEmail, $Comment, $Password, " +
+									" VALUES ($UserId, $Username, $LoweredUsername, $ApplicationId, $Email, $LoweredEmail, $Comment, $Password, " +
 									" $PasswordFormat, $PasswordSalt, $PasswordQuestion, $PasswordAnswer, $IsApproved, $IsAnonymous, " +
 									" $LastActivityDate, $LastLoginDate, $LastPasswordChangedDate, $CreateDate, " +
 									" $IsLockedOut, $LastLockoutDate, $FailedPasswordAttemptCount, $FailedPasswordAttemptWindowStart, " +
-									" $FailedPasswordAnswerAttemptCount, $FailedPasswordAnswerAttemptWindowStart)";
+									" $FailedPasswordAnswerAttemptCount, $FailedPasswordAnswerAttemptWindowStart)",
+									USER_TB_NAME);
 
 						DateTime nullDate = _minDate;
 
